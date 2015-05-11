@@ -138,7 +138,7 @@ func layoutHelp(g *gocui.Gui) {
 	if help, err := g.SetView("help", -1, 0, maxX, maxY); err != nil && help != nil {
 		help.Frame = false
 		help.Wrap = true
-		fmt.Fprint(help, "Keybinds:\n\th - this screen\n\tq - quit\n\tj - navigate/scroll up\n\tk - navigate/scroll down\n\tr - refresh\n\tf - front page\n\tc - comments (self text view)\n\tl - open link url\n\tenter - open reddit permalink\n\n")
+		fmt.Fprint(help, "Keybinds:\n\th - this screen\n\tq - quit\n\tj - navigate/scroll down\n\tk - navigate/scroll up\n\tr - refresh\n\tf - front page\n\tc - comments (self text view)\n\tl - open link url\n\tenter - open reddit permalink\n\n")
 		allViews = append(allViews, help)
 		g.SetCurrentView("help")
 	}
