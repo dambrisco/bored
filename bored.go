@@ -30,7 +30,7 @@ var opts geddit.ListingOptions
 var after string
 var count int
 var subreddit string
-var currentSubmission *geddit.Submission
+var currentIndex int
 var currentPageType pagetype
 
 func getCredentials() (string, string) {
@@ -61,7 +61,7 @@ func login() *geddit.LoginSession {
 	return session
 }
 
-func load(g *gocui.Gui, limit int) []*geddit.Submission {
+func load(limit int) []*geddit.Submission {
 	opts = geddit.ListingOptions{
 		Limit: limit,
 		After: after,
@@ -87,7 +87,7 @@ func layoutList(g *gocui.Gui) {
 			fmt.Fprint(v, "•")
 		}
 		if s, err := g.SetView(name, 1, y, maxX, y+2); err != nil && s != nil {
-			if i == 0 {
+			if i == currentIndex {
 				g.SetCurrentView(name)
 			}
 			views = append(views, s)
@@ -109,7 +109,6 @@ func layoutList(g *gocui.Gui) {
 		i += 1
 	}
 	setColor(g.CurrentView())
-	currentSubmission = getCurrentSubmission(g.CurrentView())
 }
 
 func layoutComments(g *gocui.Gui) {
@@ -122,13 +121,13 @@ func layoutComments(g *gocui.Gui) {
 	if title, err := g.SetView("post-title", 1, 0, maxX, 2); err != nil && title != nil {
 		allViews = append(allViews, title)
 		title.Frame = false
-		fmt.Fprintf(title, "%s", html.UnescapeString(currentSubmission.Title))
+		fmt.Fprintf(title, "%s", html.UnescapeString(submissions[currentIndex].Title))
 	}
 	if text, err := g.SetView("post-text", -1, 1, maxX, maxY); err != nil && text != nil {
 		allViews = append(allViews, text)
 		text.Frame = false
 		text.Wrap = true
-		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(currentSubmission.Selftext), "\n\n", "\n", -1))
+		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(submissions[currentIndex].Selftext), "\n\n", "\n", -1))
 		g.SetCurrentView("post-text")
 	}
 }
@@ -186,6 +185,7 @@ func cursorDown(g *gocui.Gui, v *gocui.View) error {
 		if next >= len(views) {
 			next = len(views) - 1
 		}
+		currentIndex = next
 		return g.SetCurrentView(views[next].Name())
 	} else if currentPageType == Comments || currentPageType == Help {
 		x, y := v.Origin()
@@ -206,6 +206,7 @@ func cursorUp(g *gocui.Gui, v *gocui.View) error {
 		if prev < 0 {
 			prev = 0
 		}
+		currentIndex = prev
 		return g.SetCurrentView(views[prev].Name())
 	} else if currentPageType == Comments || currentPageType == Help {
 		x, y := v.Origin()
@@ -220,10 +221,10 @@ func upvote(g *gocui.Gui, v *gocui.View) error {
 			if w == v {
 				if votes[i].FgColor == gocui.ColorGreen {
 					votes[i].FgColor = gocui.ColorDefault
-					session.Vote(currentSubmission, geddit.RemoveVote)
+					session.Vote(submissions[currentIndex], geddit.RemoveVote)
 				} else {
 					votes[i].FgColor = gocui.ColorGreen
-					session.Vote(currentSubmission, geddit.UpVote)
+					session.Vote(submissions[currentIndex], geddit.UpVote)
 				}
 			}
 		}
@@ -231,10 +232,10 @@ func upvote(g *gocui.Gui, v *gocui.View) error {
 		vote, _ := g.View("post-vote")
 		if vote.FgColor == gocui.ColorGreen {
 			vote.FgColor = gocui.ColorDefault
-			session.Vote(currentSubmission, geddit.RemoveVote)
+			session.Vote(submissions[currentIndex], geddit.RemoveVote)
 		} else {
 			vote.FgColor = gocui.ColorGreen
-			session.Vote(currentSubmission, geddit.UpVote)
+			session.Vote(submissions[currentIndex], geddit.UpVote)
 		}
 	}
 	return nil
@@ -257,22 +258,22 @@ func downvote(g *gocui.Gui, v *gocui.View) error {
 		vote, _ := g.View("post-vote")
 		if vote.FgColor == gocui.ColorRed {
 			vote.FgColor = gocui.ColorDefault
-			session.Vote(currentSubmission, geddit.RemoveVote)
+			session.Vote(submissions[currentIndex], geddit.RemoveVote)
 		} else {
 			vote.FgColor = gocui.ColorRed
-			session.Vote(currentSubmission, geddit.DownVote)
+			session.Vote(submissions[currentIndex], geddit.DownVote)
 		}
 	}
 	return nil
 }
 
 func enter(g *gocui.Gui, v *gocui.View) error {
-	webbrowser.Open("https://www.reddit.com/" + currentSubmission.Permalink)
+	webbrowser.Open("https://www.reddit.com/" + submissions[currentIndex].Permalink)
 	return nil
 }
 
 func link(g *gocui.Gui, v *gocui.View) error {
-	webbrowser.Open(currentSubmission.URL)
+	webbrowser.Open(submissions[currentIndex].URL)
 	return nil
 }
 
@@ -291,8 +292,9 @@ func comments(g *gocui.Gui, v *gocui.View) error {
 func refresh(g *gocui.Gui, v *gocui.View) error {
 	if currentPageType == List {
 		currentPageType = Empty
+		currentIndex = 0
 		clearViews(g, v)
-		load(g, count)
+		load(count)
 		return front(g, v)
 	} else if currentPageType == Comments || currentPageType == Help {
 		clearViews(g, v)
@@ -359,17 +361,6 @@ func setColor(v *gocui.View) {
 	v.FgColor = gocui.ColorBlue
 }
 
-func getCurrentSubmission(v *gocui.View) *geddit.Submission {
-	for i, w := range views {
-		if w == v {
-			if i < len(submissions) {
-				return submissions[i]
-			}
-		}
-	}
-	return submissions[0]
-}
-
 func main() {
 	var err error
 	session = login()
@@ -381,9 +372,10 @@ func main() {
 	}
 	_, count = g.Size()
 	count = count - 1
-	submissions = load(g, count)
+	submissions = load(count)
 	currentPageType = List
 	g.BgColor = gocui.ColorDefault
+	g.FgColor = gocui.ColorDefault
 	defer g.Close()
 	g.SetLayout(layout)
 	setKeybinds(g)
