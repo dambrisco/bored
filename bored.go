@@ -94,18 +94,7 @@ func layoutList(g *gocui.Gui) {
 			s.Frame = false
 			subm := submissions[i]
 			after = subm.Title
-			title := html.UnescapeString(subm.Title)
-			tag := "LINK"
-			if subm.IsSelf {
-				tag = "SELF"
-			}
-			if subm.IsNSFW {
-				tag = "NSFW+" + tag
-			}
-			if subm.IsSticky {
-				tag = "STICKY+" + tag
-			}
-			fmt.Fprintf(s, "[%s] %s", tag, title)
+			fmt.Fprint(s, buildTitleTag(subm))
 			allViews = append(allViews, s)
 		}
 		y += 1
@@ -115,6 +104,7 @@ func layoutList(g *gocui.Gui) {
 }
 
 func layoutComments(g *gocui.Gui) {
+	s := submissions[currentIndex]
 	maxX, maxY := g.Size()
 	if vote, err := g.SetView("post-vote", -1, 0, 1, 2); err != nil && vote != nil {
 		allViews = append(allViews, vote)
@@ -124,13 +114,18 @@ func layoutComments(g *gocui.Gui) {
 	if title, err := g.SetView("post-title", 1, 0, maxX, 2); err != nil && title != nil {
 		allViews = append(allViews, title)
 		title.Frame = false
-		fmt.Fprintf(title, "%s", html.UnescapeString(submissions[currentIndex].Title))
+		fmt.Fprint(title, buildTitleTag(s))
 	}
-	if text, err := g.SetView("post-text", -1, 1, maxX, maxY); err != nil && text != nil {
+	if meta, err := g.SetView("post-meta", 1, 1, maxX, 3); err != nil && meta != nil {
+		allViews = append(allViews, meta)
+		meta.Frame = false
+		fmt.Fprintf(meta, "Score: %d | Subreddit: %s", s.Score, s.Subreddit)
+	}
+	if text, err := g.SetView("post-text", -1, 2, maxX, maxY); err != nil && text != nil {
 		allViews = append(allViews, text)
 		text.Frame = false
 		text.Wrap = true
-		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(submissions[currentIndex].Selftext), "\n\n", "\n", -1))
+		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(s.Selftext), "\n\n", "\n", -1))
 		g.SetCurrentView("post-text")
 	}
 }
@@ -219,52 +214,48 @@ func cursorUp(g *gocui.Gui, v *gocui.View) error {
 }
 
 func upvote(g *gocui.Gui, v *gocui.View) error {
+	s := submissions[currentIndex]
 	if currentPageType == List {
-		for i, w := range views {
-			if w == v {
-				if votes[i].FgColor == gocui.ColorGreen {
-					votes[i].FgColor = gocui.ColorDefault
-					session.Vote(submissions[currentIndex], geddit.RemoveVote)
-				} else {
-					votes[i].FgColor = gocui.ColorGreen
-					session.Vote(submissions[currentIndex], geddit.UpVote)
-				}
-			}
+		vote := votes[currentIndex]
+		if vote.FgColor == gocui.ColorGreen {
+			vote.FgColor = gocui.ColorDefault
+			session.Vote(s, geddit.RemoveVote)
+		} else {
+			vote.FgColor = gocui.ColorGreen
+			session.Vote(s, geddit.UpVote)
 		}
 	} else if currentPageType == Comments {
 		vote, _ := g.View("post-vote")
 		if vote.FgColor == gocui.ColorGreen {
 			vote.FgColor = gocui.ColorDefault
-			session.Vote(submissions[currentIndex], geddit.RemoveVote)
+			session.Vote(s, geddit.RemoveVote)
 		} else {
 			vote.FgColor = gocui.ColorGreen
-			session.Vote(submissions[currentIndex], geddit.UpVote)
+			session.Vote(s, geddit.UpVote)
 		}
 	}
 	return nil
 }
 
 func downvote(g *gocui.Gui, v *gocui.View) error {
+	s := submissions[currentIndex]
 	if currentPageType == List {
-		for i, w := range views {
-			if w == v {
-				if votes[i].FgColor == gocui.ColorRed {
-					votes[i].FgColor = gocui.ColorDefault
-					session.Vote(submissions[i], geddit.RemoveVote)
-				} else {
-					votes[i].FgColor = gocui.ColorRed
-					session.Vote(submissions[i], geddit.DownVote)
-				}
-			}
+		vote := votes[currentIndex]
+		if vote.FgColor == gocui.ColorRed {
+			vote.FgColor = gocui.ColorDefault
+			session.Vote(s, geddit.RemoveVote)
+		} else {
+			vote.FgColor = gocui.ColorRed
+			session.Vote(s, geddit.DownVote)
 		}
 	} else if currentPageType == Comments {
 		vote, _ := g.View("post-vote")
 		if vote.FgColor == gocui.ColorRed {
 			vote.FgColor = gocui.ColorDefault
-			session.Vote(submissions[currentIndex], geddit.RemoveVote)
+			session.Vote(s, geddit.RemoveVote)
 		} else {
 			vote.FgColor = gocui.ColorRed
-			session.Vote(submissions[currentIndex], geddit.DownVote)
+			session.Vote(s, geddit.DownVote)
 		}
 	}
 	return nil
@@ -362,6 +353,21 @@ func setColor(v *gocui.View) {
 		w.FgColor = gocui.ColorDefault
 	}
 	v.FgColor = gocui.ColorBlue
+}
+
+func buildTitleTag(s *geddit.Submission) string {
+	title := html.UnescapeString(s.Title)
+	tag := "LINK"
+	if s.IsSelf {
+		tag = "SELF"
+	}
+	if s.IsNSFW {
+		tag = "NSFW+" + tag
+	}
+	if s.IsSticky {
+		tag = "STICKY+" + tag
+	}
+	return fmt.Sprintf("[%s] %s", tag, title)
 }
 
 func main() {
