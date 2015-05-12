@@ -102,6 +102,9 @@ func layoutList(g *gocui.Gui) {
 			if subm.IsNSFW {
 				tag = "NSFW+" + tag
 			}
+			if subm.IsSticky {
+				tag = "STICKY+" + tag
+			}
 			fmt.Fprintf(s, "[%s] %s", tag, title)
 			allViews = append(allViews, s)
 		}
