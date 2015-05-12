@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/dambrisco/geddit"
 	"github.com/jroimartin/gocui"
-	"github.com/jzelinskie/geddit"
 	"github.com/toqueteos/webbrowser"
 	"html"
 	"log"
