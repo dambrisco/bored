@@ -81,10 +81,10 @@ func layoutList(g *gocui.Gui) {
 	for y < maxY-1 && i < len(submissions) {
 		name := fmt.Sprintf("submission-%d", i)
 		if v, err := g.SetView(fmt.Sprintf("vote-%d", i), -1, y, 1, y+2); err != nil && v != nil {
+			allViews = append(allViews, v)
 			votes = append(votes, v)
 			v.Frame = false
 			fmt.Fprint(v, "•")
-			allViews = append(allViews, v)
 		}
 		if s, err := g.SetView(name, 1, y, maxX, y+2); err != nil && s != nil {
 			if i == 0 {
@@ -115,20 +115,20 @@ func layoutList(g *gocui.Gui) {
 func layoutComments(g *gocui.Gui) {
 	maxX, maxY := g.Size()
 	if vote, err := g.SetView("post-vote", -1, 0, 1, 2); err != nil && vote != nil {
+		allViews = append(allViews, vote)
 		vote.Frame = false
 		fmt.Fprint(vote, "•")
-		allViews = append(allViews, vote)
 	}
 	if title, err := g.SetView("post-title", 1, 0, maxX, 2); err != nil && title != nil {
+		allViews = append(allViews, title)
 		title.Frame = false
 		fmt.Fprintf(title, "%s", html.UnescapeString(currentSubmission.Title))
-		allViews = append(allViews, title)
 	}
-	if text, err := g.SetView("post-text", -1, 1, maxX, maxY); err != nil && text != nil && currentSubmission.IsSelf {
+	if text, err := g.SetView("post-text", -1, 1, maxX, maxY); err != nil && text != nil {
+		allViews = append(allViews, text)
 		text.Frame = false
 		text.Wrap = true
 		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(currentSubmission.Selftext), "\n\n", "\n", -1))
-		allViews = append(allViews, text)
 		g.SetCurrentView("post-text")
 	}
 }
@@ -136,10 +136,10 @@ func layoutComments(g *gocui.Gui) {
 func layoutHelp(g *gocui.Gui) {
 	maxX, maxY := g.Size()
 	if help, err := g.SetView("help", -1, 0, maxX, maxY); err != nil && help != nil {
+		allViews = append(allViews, help)
 		help.Frame = false
 		help.Wrap = true
 		fmt.Fprint(help, "Keybinds:\n\th - this screen\n\tq - quit\n\tj - navigate/scroll down\n\tk - navigate/scroll up\n\tr - refresh\n\tf - front page\n\tc - comments (self text view)\n\tl - open link url\n\tenter - open reddit permalink\n\n")
-		allViews = append(allViews, help)
 		g.SetCurrentView("help")
 	}
 }
@@ -148,11 +148,11 @@ func layout(g *gocui.Gui) error {
 	maxX, count := g.Size()
 	count = count - 1
 	if title, err := g.SetView("title", -1, -1, maxX, 1); err != nil {
+		allViews = append(allViews, title)
 		title.Frame = false
 		title.BgColor = gocui.ColorBlue
 		title.FgColor = gocui.ColorWhite
 		fmt.Fprintln(title, "Bored v0.0.1")
-		allViews = append(allViews, title)
 	}
 	if currentPageType == List {
 		layoutList(g)
