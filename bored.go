@@ -125,7 +125,7 @@ func layoutComments(g *gocui.Gui) {
 		allViews = append(allViews, text)
 		text.Frame = false
 		text.Wrap = true
-		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(s.HTML), "\n\n", "\n", -1))
+		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(s.Selftext), "\n\n", "\n", -1))
 		g.SetCurrentView("post-text")
 	}
 }
