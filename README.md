@@ -7,6 +7,7 @@ Speaking of keybinds:
     q - quit
     j - navigate/scroll down
     k - navigate/scroll up
+    i - show submission info (only on list view)
     r - refresh
     f - front page
     c - comments (currently just a self-text view)

@@ -1,0 +1,11 @@
+Keybinds:
+  h - this screen
+  q - quit
+  j - navigate/scroll down
+  k - navigate/scroll up
+  i - show submission info (only on list view)
+  r - refresh
+  f - front page
+  c - comments (self text view)
+  l - open link url
+  enter - open reddit permalink\n\n

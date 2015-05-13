@@ -4,9 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"github.com/dambrisco/geddit"
+	"github.com/dambrisco/prose"
 	"github.com/jroimartin/gocui"
 	"github.com/toqueteos/webbrowser"
 	"html"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -116,16 +118,16 @@ func layoutComments(g *gocui.Gui) {
 		title.Frame = false
 		fmt.Fprint(title, buildTitleTag(s))
 	}
-	if meta, err := g.SetView("post-meta", 1, 1, maxX, 3); err != nil && meta != nil {
+	if meta, err := g.SetView("post-meta", -1, 2, maxX, 4); err != nil && meta != nil {
 		allViews = append(allViews, meta)
 		meta.Frame = false
 		fmt.Fprintf(meta, "Score: %d | Subreddit: %s", s.Score, s.Subreddit)
 	}
-	if text, err := g.SetView("post-text", -1, 2, maxX, maxY); err != nil && text != nil {
+	if text, err := g.SetView("post-text", -1, 4, maxX, maxY); err != nil && text != nil {
 		allViews = append(allViews, text)
 		text.Frame = false
 		text.Wrap = true
-		fmt.Fprintf(text, "%s", strings.Replace(html.UnescapeString(s.Selftext), "\n\n", "\n", -1))
+		fmt.Fprintf(text, "%s", prose.Wrap(strings.Replace(html.UnescapeString(s.Selftext), "\n\n", "\n", -1), maxX))
 		g.SetCurrentView("post-text")
 	}
 }
@@ -136,7 +138,13 @@ func layoutHelp(g *gocui.Gui) {
 		allViews = append(allViews, help)
 		help.Frame = false
 		help.Wrap = true
-		fmt.Fprint(help, "Keybinds:\n\th - this screen\n\tq - quit\n\tj - navigate/scroll down\n\tk - navigate/scroll up\n\tr - refresh\n\tf - front page\n\tc - comments (self text view)\n\tl - open link url\n\tenter - open reddit permalink\n\n")
+		h, err := ioutil.ReadFile("help.txt")
+		l, err := ioutil.ReadFile("LICENSE")
+		if err != nil {
+			log.Panicln(err)
+		}
+		fmt.Fprintln(help, string(h))
+		fmt.Fprint(help, string(l))
 		g.SetCurrentView("help")
 	}
 }
@@ -296,6 +304,20 @@ func refresh(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
+func info(g *gocui.Gui, v *gocui.View) error {
+	if currentPageType == List {
+		s := submissions[currentIndex]
+		b := v.Buffer()
+		v.Clear()
+		if strings.HasPrefix(b, "S") {
+			fmt.Fprint(v, buildTitleTag(s))
+		} else {
+			fmt.Fprintf(v, "Score: %d | Subreddit: %s", s.Score, s.Subreddit)
+		}
+	}
+	return nil
+}
+
 func clearViews(g *gocui.Gui, v *gocui.View) {
 	for _, w := range allViews {
 		g.DeleteView(w.Name())
@@ -344,6 +366,9 @@ func setKeybinds(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 	if err := g.SetKeybinding("", 'r', gocui.ModNone, refresh); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("", 'i', gocui.ModNone, info); err != nil {
 		log.Panicln(err)
 	}
 }
