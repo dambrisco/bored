@@ -79,16 +79,15 @@ func load(limit int) []*geddit.Submission {
 func layoutList(g *gocui.Gui) {
 	maxX, maxY := g.Size()
 	i := 0
-	y := 0
-	for y < maxY-1 && i < len(submissions) {
+	for i < maxY-1 && i < len(submissions) {
 		name := fmt.Sprintf("submission-%d", i)
-		if v, err := g.SetView(fmt.Sprintf("vote-%d", i), -1, y, 1, y+2); err != nil && v != nil {
+		if v, err := g.SetView(fmt.Sprintf("vote-%d", i), -1, i, 1, i+2); err != nil && v != nil {
 			allViews = append(allViews, v)
 			votes = append(votes, v)
 			v.Frame = false
 			fmt.Fprint(v, "•")
 		}
-		if s, err := g.SetView(name, 1, y, maxX, y+2); err != nil && s != nil {
+		if s, err := g.SetView(name, 1, i, maxX, i+2); err != nil && s != nil {
 			if i == currentIndex {
 				g.SetCurrentView(name)
 			}
@@ -99,7 +98,6 @@ func layoutList(g *gocui.Gui) {
 			fmt.Fprint(s, buildTitleTag(subm))
 			allViews = append(allViews, s)
 		}
-		y += 1
 		i += 1
 	}
 	setColor(g.CurrentView())
