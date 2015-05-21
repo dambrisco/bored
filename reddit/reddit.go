@@ -3,13 +3,15 @@ package reddit
 import "github.com/dambrisco/geddit"
 
 var currentIndex int
-var loadedSubmissions []*geddit.Submission
+var submissions []*geddit.Submission
 var opts geddit.ListingOptions
+
+var limit int
 var after string
+var session *geddit.LoginSession
+var subreddit string
 
-func Load(limit int, subreddit string, session *geddit.LoginSession) []*geddit.Submission {
-	var submissions []*geddit.Submission
-
+func Load() {
 	opts = geddit.ListingOptions{
 		Limit: limit,
 		After: after,
@@ -20,9 +22,13 @@ func Load(limit int, subreddit string, session *geddit.LoginSession) []*geddit.S
 	} else {
 		submissions, _ = session.SubredditSubmissions(subreddit, geddit.DefaultPopularity, opts)
 	}
+}
 
-	loadedSubmissions = submissions
-	return submissions
+func SetOptions(count int, sub string, sess *geddit.LoginSession) {
+	limit = count
+	subreddit = sub
+	session = sess
+	Load()
 }
 
 func SetAfter(a string) {
@@ -30,11 +36,11 @@ func SetAfter(a string) {
 }
 
 func GetSubmissions() []*geddit.Submission {
-	return loadedSubmissions
+	return submissions
 }
 
 func GetCurrentSubmission() *geddit.Submission {
-	return loadedSubmissions[currentIndex]
+	return submissions[currentIndex]
 }
 
 func GetCurrentIndex() int {
