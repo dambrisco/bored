@@ -1,17 +1,18 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"html"
+	"io/ioutil"
+	"log"
+	"strings"
+
 	"github.com/dambrisco/geddit"
 	"github.com/dambrisco/prose"
 	"github.com/jroimartin/gocui"
 	"github.com/toqueteos/webbrowser"
-	"html"
-	"io/ioutil"
-	"log"
-	"os"
-	"strings"
+
+	"github.com/dambrisco/bored/flag-parser"
 )
 
 type pagetype int
@@ -35,30 +36,7 @@ var subreddit string
 var currentIndex int
 var currentPageType pagetype
 
-func getCredentials() (string, string) {
-	username := flag.String("u", "", "Username")
-	password := flag.String("p", "", "Password")
-	flag.StringVar(&subreddit, "s", "", "Subreddit")
-	flag.Parse()
-	if *username == "" {
-		*username = os.Getenv("BORED_USERNAME")
-	}
-	if *password == "" {
-		*password = os.Getenv("BORED_PASSWORD")
-	}
-	if subreddit == "" {
-		subreddit = os.Getenv("BORED_SUBREDDIT")
-	}
-	if *username == "" || *password == "" {
-		log.Panicln("bored requires a username and password")
-		os.Exit(2)
-	}
-
-	return *username, *password
-}
-
-func login() *geddit.LoginSession {
-	username, password := getCredentials()
+func login(username string, password string) *geddit.LoginSession {
 	session, _ := geddit.NewLoginSession(username, password, "geddit")
 	return session
 }
@@ -395,7 +373,9 @@ func buildTitleTag(s *geddit.Submission) string {
 
 func main() {
 	var err error
-	session = login()
+	username, password, s := flagParser.Parse()
+	subreddit = s
+	session = login(username, password)
 	after = ""
 
 	g := gocui.NewGui()
