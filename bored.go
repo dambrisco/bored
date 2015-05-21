@@ -12,6 +12,7 @@ import (
 	"github.com/jroimartin/gocui"
 	"github.com/toqueteos/webbrowser"
 
+	"github.com/dambrisco/bored/auth"
 	"github.com/dambrisco/bored/flag-parser"
 )
 
@@ -35,11 +36,6 @@ var count int
 var subreddit string
 var currentIndex int
 var currentPageType pagetype
-
-func login(username string, password string) *geddit.LoginSession {
-	session, _ := geddit.NewLoginSession(username, password, "geddit")
-	return session
-}
 
 func load(limit int) []*geddit.Submission {
 	opts = geddit.ListingOptions{
@@ -375,7 +371,7 @@ func main() {
 	var err error
 	username, password, s := flagParser.Parse()
 	subreddit = s
-	session = login(username, password)
+	session = auth.Login(username, password)
 	after = ""
 
 	g := gocui.NewGui()
