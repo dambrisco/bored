@@ -15,7 +15,7 @@ Speaking of keybinds:
     y - copy link url
     enter - open reddit permalink
 
-Params:
+Params (these override the environment variables below):
 
     -u username
     -p password
