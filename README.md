@@ -1,4 +1,4 @@
-#Bored
+#Bored ![Travis CI status](https://travis-ci.org/dambrisco/bored.svg?branch=master "Oh god why aren't there any tests")
 Welcome to Bored, the world's premier termbox-based Reddit CLI. It has *numerous* features including keybinds, opening links in your browser, and even the ability to upvote and downvote links!
 
 Speaking of keybinds:
