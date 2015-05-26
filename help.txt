@@ -8,4 +8,5 @@ Keybinds:
   f - front page
   c - comments (self text view)
   l - open link url
+  y - copy link url
   enter - open reddit permalink\n\n

@@ -12,6 +12,7 @@ Speaking of keybinds:
     f - front page
     c - comments (currently just a self-text view)
     l - open link url
+    y - copy link url
     enter - open reddit permalink
 
 Params:
