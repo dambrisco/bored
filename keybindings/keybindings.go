@@ -24,7 +24,7 @@ func Set(g *gocui.Gui) {
 	addBinding('c', comments)
 	addBinding('r', refresh)
 	addBinding('i', info)
-	addBinding('y', info)
+	addBinding('y', yank)
 }
 
 func addBinding(c interface{}, f gocui.KeybindingHandler) {

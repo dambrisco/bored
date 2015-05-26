@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/dambrisco/bored/layout"
 	"github.com/dambrisco/bored/reddit"
 	"github.com/jroimartin/gocui"
@@ -19,6 +20,12 @@ func enter(g *gocui.Gui, v *gocui.View) error {
 func link(g *gocui.Gui, v *gocui.View) error {
 	submission := reddit.GetCurrentSubmission()
 	webbrowser.Open(submission.URL)
+	return nil
+}
+
+func yank(g *gocui.Gui, v *gocui.View) error {
+	submission := reddit.GetCurrentSubmission()
+	clipboard.WriteAll(submission.URL)
 	return nil
 }
 
