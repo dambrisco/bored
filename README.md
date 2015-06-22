@@ -17,14 +17,18 @@ Speaking of keybinds:
 
 Params (these override the environment variables below):
 
-    -u username
-    -p password
+    -u username (MUST NOT be encrypted)
+    -p password (MUST NOT be encrypted)
     -s subreddit (using this loads submissions from ONLY the given subreddit)
+    -e encrypt-only
+        This param will encrypt the given username and/or password and exit,
+        allowing you to set up your environment variables with the printed
+        values
 
 Environment variables to make your life easier:
 
-    BORED_USERNAME - same as specifying -u
-    BORED_PASSWORD - same as specifying -p
+    BORED_USERNAME - same as specifying -u (MUST be encrypted)
+    BORED_PASSWORD - same as specifying -p (MUST be encrypted)
     BORED_SUBREDDIT - same as specifying -s
 
 To install, clone the repo and run `go install .`

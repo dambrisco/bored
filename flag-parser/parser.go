@@ -10,7 +10,7 @@ func Parse() (string, string, string, bool, bool) {
 	username := flag.String("u", "", "Username")
 	password := flag.String("p", "", "Password")
 	subreddit := flag.String("s", "", "Subreddit")
-	onlyEncrypt := flag.Bool("e", false, "Only perform encryption")
+	onlyEncrypt := flag.Bool("e", false, "Only perform encryption - will exit after printing the encrypted username and/or password provided")
 	encrypted := false
 
 	flag.Parse()
